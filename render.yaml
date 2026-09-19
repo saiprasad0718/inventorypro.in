@@ -1,0 +1,54 @@
+# Render Blueprint. Secret values (sync: false) are asked for when you create the Blueprint.
+services:
+  - type: web
+    name: inventorypro-api
+    runtime: python
+    rootDir: backend
+    plan: free            # change to "starter" for no sleep / no 50s cold starts
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips='*'
+    healthCheckPath: /api/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3
+      - key: MONGO_URL
+        sync: false
+      - key: DB_NAME
+        value: inventorypro
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OWNER_SEED_EMAIL
+        sync: false
+      - key: OWNER_SEED_PASSWORD
+        sync: false
+      - key: SEED_DEMO_USERS
+        value: "false"
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        value: onboarding@resend.dev
+      - key: EMAIL_FROM_NAME
+        value: InventoryPro.in
+      - key: EMAIL_REPLY_TO
+        sync: false
+      - key: OWNER_EMAIL
+        sync: false
+
+  - type: web
+    name: inventorypro-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: yarn install && CI=false yarn build
+    staticPublishPath: build
+    pullRequestPreviewsEnabled: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+      - key: REACT_APP_BACKEND_URL
+        sync: false
